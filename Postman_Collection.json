@@ -1,0 +1,46 @@
+{
+  "info": {
+    "name": "TechIntellect APIs",
+    "description": "Simple Postman collection for TechIntellect Employee Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Employee Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Emp_ID\": 4086,\n  \"Emp_Name\": \"Dr.John\",\n  \"Designation\": \"Director\",\n  \"Account\": \"1827010XXXXXXXX989\",\n  \"IFSC\": \"IOBA086876\",\n  \"Age\": 52,\n  \"Gross_pay\": 100000,\n  \"Net_pay\": 98283,\n  \"Basic_pay\": 50000,\n  \"DA\": 20000,\n  \"HRA\": 20000\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/upload-data",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["upload-data"]
+        },
+        "description": "Upload employee data to Elasticsearch database"
+      }
+    },
+    {
+      "name": "Generate All Employees PDF",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/generate-pdf",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["generate-pdf"]
+        },
+        "description": "Generate PDF report with all employees from database"
+      }
+    }
+  ]
+}
