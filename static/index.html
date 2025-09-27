@@ -86,7 +86,7 @@
       };
 
       try {
-        const response = await fetch('/upload-data', {
+        const response = await fetch('/api/upload-data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -94,14 +94,18 @@
           body: JSON.stringify(data)
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-          alert('Data uploaded successfully!');
+          alert('Data uploaded successfully! Document ID: ' + result.document_id);
+          // Clear form on success
+          document.getElementById('uploadForm').reset();
         } else {
-          alert('Failed to upload data.');
+          alert('Failed to upload data: ' + (result.detail || 'Unknown error'));
         }
       } catch (error) {
         console.error(error);
-        alert('Error uploading data.');
+        alert('Error uploading data: ' + error.message);
       }
     });
   </script>

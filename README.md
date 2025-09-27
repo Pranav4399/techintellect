@@ -1,48 +1,65 @@
-# TechIntellect FastAPI
+# TechIntellect - Simplified Employee Management System
 
-Simple FastAPI application with health endpoint and Elasticsearch integration.
+A simple FastAPI application for employee data management with Elasticsearch backend.
 
-## Setup
+## Project Structure
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
+```
+techintellect/
+├── app.py                    # Main FastAPI application
+├── app.conf                  # Simple configuration
+├── module_register.json      # Module registration
+├── run.py                    # Development server
+├── requirements.txt          # Dependencies
+├── static/                   # Frontend files
+│   └── index.html
+├── pdfs/                     # Generated PDF reports
+└── src/                      # Source code
+    └── employee/             # Employee module
+        ├── controllers.py    # API endpoints
+        └── services.py       # Business logic
 ```
 
-2. Run the application:
-```bash
-python run.py
-```
+## Quick Start
 
-3. Test the endpoints:
-```bash
-# Health check
-curl http://localhost:8000/health
+1. **Start Elasticsearch** (using Docker):
+   ```bash
+   docker-compose up -d elasticsearch
+   ```
 
-# Elasticsearch status
-curl http://localhost:8000/es-status
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# Upload sample data from data.json (curl method)
-curl -X POST http://localhost:8000/upload-data \
-  -H "Content-Type: application/json" \
-  -d @data.json
-```
+3. **Run the application**:
+   ```bash
+   python run.py
+   ```
 
-Expected responses:
-- Health: `{"status": "OK"}`
-- ES Status: `{"elasticsearch": "connected", "status": "OK"}` (if ES is running)
-- Upload: Success message with document ID
+4. **Access the app**:
+   - Frontend: http://localhost:8000
+   - API: http://localhost:8000/api/v1/
 
 ## API Endpoints
 
-- `GET /` - Welcome message
-- `GET /health` - Application health check
-- `GET /es-status` - Elasticsearch connection status
-- `POST /upload-data` - Upload employee data with validation
+- `POST /api/v1/upload-data` - Upload employee data
+- `GET /api/v1/generate-pdf` - Generate PDF report
+- `GET /api/v1/es-status` - Check Elasticsearch connection
+- `GET /api/v1/health` - Health check
+- `GET /` - Frontend interface
 
-## Dependencies
+## Configuration
 
-- **FastAPI**: Web framework
-- **Uvicorn**: ASGI server
-- **Elasticsearch**: Search and analytics engine client
-- **Requests**: HTTP library for the upload script
+Edit `app.conf` to change settings:
+```
+ELASTICSEARCH_HOST=http://localhost:9200
+INDEX_NAME=employee_data
+```
+
+## Usage
+
+1. Open http://localhost:8000 in your browser
+2. Fill out the employee form
+3. Click "Upload Data" to save to Elasticsearch
+4. Click "Generate PDF" to create reports
