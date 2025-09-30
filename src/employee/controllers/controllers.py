@@ -39,6 +39,44 @@ async def get_elasticsearch_status():
 
     return result
 
+@router.put("/update-employee")
+async def update_employee_data(data: Dict[Any, Any]):
+    result = employee_service.update_employee(data)
+
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    return result
+
+@router.delete("/delete-employee")
+async def delete_employee_data(data: Dict[Any, Any]):
+    result = employee_service.delete_employee(data)
+
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    return result
+
+@router.get("/employee/{emp_id}")
+async def get_employee_by_id(emp_id: str):
+    """Get employee data by ID."""
+    result = employee_service.get_employee(emp_id)
+
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+
+    return result
+
+@router.get("/employees")
+async def list_employees():
+    """Get list of all employees."""
+    result = employee_service.list_employees()
+
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    return result
+
 @router.get("/health")
 async def health_check():
     return {

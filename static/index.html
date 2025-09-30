@@ -7,9 +7,22 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
+      max-width: 800px;
       margin: 50px auto;
       text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
     }
     form {
       margin-top: 20px;
@@ -31,6 +44,14 @@
       font-size: 16px;
       cursor: pointer;
     }
+    .btn-small {
+      padding: 5px 10px;
+      font-size: 12px;
+      margin: 2px;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -40,6 +61,18 @@
     <div>
       <a href="/generate-pdf">Generate PDF</a>
     </div>
+
+    <table id="employeeTable">
+      <thead>
+        <tr>
+          <th>Employee ID</th>
+          <th>Employee Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="employeeList">
+      </tbody>
+    </table>
 
     <form id="uploadForm">
       <label for="Emp_ID">Employee ID</label>
@@ -66,11 +99,158 @@
       <label for="Net_pay">Net Pay</label>
       <input type="number" id="Net_pay" name="Net_pay" required>
 
-      <button type="submit">Upload Data</button>
+      <button type="submit" id="submitBtn">Upload Data</button>
+      <button type="button" id="updateBtn" class="hidden" onclick="updateEmployee()">Update Employee</button>
+      <button type="button" id="cancelBtn" class="hidden" onclick="cancelUpdate()">Cancel</button>
     </form>
   </div>
 
   <script>
+    let isUpdateMode = false;
+    let currentEmployeeId = null;
+
+    // Load employees on page load
+    window.onload = function() {
+      loadEmployees();
+    };
+
+    async function loadEmployees() {
+      try {
+        const response = await fetch('/employees');
+        const result = await response.json();
+        
+        if (response.ok && result.employees) {
+          const employeeList = document.getElementById('employeeList');
+          
+          if (result.employees.length === 0) {
+            employeeList.innerHTML = '<tr><td colspan="3">No employees found</td></tr>';
+          } else {
+            employeeList.innerHTML = result.employees.map(emp => `
+              <tr>
+                <td>${emp.Emp_ID}</td>
+                <td>${emp.Emp_Name}</td>
+                <td>
+                  <button class="btn-small" onclick="editEmployee(${emp.Emp_ID})">Update</button>
+                  <button class="btn-small" onclick="deleteEmployee(${emp.Emp_ID}, '${emp.Emp_Name}')">Delete</button>
+                </td>
+              </tr>
+            `).join('');
+          }
+        } else {
+          document.getElementById('employeeList').innerHTML = '<tr><td colspan="3">Error loading employees</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error loading employees:', error);
+        document.getElementById('employeeList').innerHTML = '<tr><td colspan="3">Error loading employees</td></tr>';
+      }
+    }
+
+    async function deleteEmployee(empId, empName) {
+      if (!confirm(`Are you sure you want to delete ${empName} (ID: ${empId})?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/delete-employee', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ Emp_ID: empId })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Employee deleted successfully!');
+          loadEmployees(); // Reload the list
+        } else {
+          alert('Failed to delete employee: ' + (result.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error deleting employee: ' + error.message);
+      }
+    }
+
+    async function editEmployee(empId) {
+      try {
+        const response = await fetch(`/employee/${empId}`);
+        const result = await response.json();
+
+        if (response.ok) {
+          const employee = result.employee;
+          
+          document.getElementById('Emp_ID').value = employee.Emp_ID || '';
+          document.getElementById('Emp_Name').value = employee.Emp_Name || '';
+          document.getElementById('Designation').value = employee.Designation || '';
+          document.getElementById('Account').value = employee.Account || '';
+          document.getElementById('IFSC').value = employee.IFSC || '';
+          document.getElementById('Age').value = employee.Age || '';
+          document.getElementById('Gross_pay').value = employee.Gross_pay || '';
+          document.getElementById('Net_pay').value = employee.Net_pay || '';
+
+          isUpdateMode = true;
+          currentEmployeeId = empId;
+          document.getElementById('submitBtn').classList.add('hidden');
+          document.getElementById('updateBtn').classList.remove('hidden');
+          document.getElementById('cancelBtn').classList.remove('hidden');
+          document.getElementById('Emp_ID').readOnly = true;
+
+        } else {
+          alert('Failed to load employee: ' + (result.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error loading employee: ' + error.message);
+      }
+    }
+
+    async function updateEmployee() {
+      const data = {
+        Emp_ID: document.getElementById('Emp_ID').value,
+        Emp_Name: document.getElementById('Emp_Name').value,
+        Designation: document.getElementById('Designation').value,
+        Account: document.getElementById('Account').value,
+        IFSC: document.getElementById('IFSC').value,
+        Age: document.getElementById('Age').value,
+        Gross_pay: document.getElementById('Gross_pay').value,
+        Net_pay: document.getElementById('Net_pay').value
+      };
+
+      try {
+        const response = await fetch('/update-employee', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Employee updated successfully!');
+          cancelUpdate();
+          loadEmployees();
+        } else {
+          alert('Failed to update employee: ' + (result.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Error updating employee: ' + error.message);
+      }
+    }
+
+    function cancelUpdate() {
+      isUpdateMode = false;
+      currentEmployeeId = null;
+      document.getElementById('uploadForm').reset();
+      document.getElementById('submitBtn').classList.remove('hidden');
+      document.getElementById('updateBtn').classList.add('hidden');
+      document.getElementById('cancelBtn').classList.add('hidden');
+      document.getElementById('Emp_ID').readOnly = false;
+    }
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -86,7 +266,7 @@
       };
 
       try {
-        const response = await fetch('/api/upload-data', {
+        const response = await fetch('/upload-data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -98,8 +278,8 @@
 
         if (response.ok) {
           alert('Data uploaded successfully! Document ID: ' + result.document_id);
-          // Clear form on success
           document.getElementById('uploadForm').reset();
+          loadEmployees();
         } else {
           alert('Failed to upload data: ' + (result.detail || 'Unknown error'));
         }

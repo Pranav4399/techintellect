@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 elasticsearch
 fpdf
+pytest
+httpx
